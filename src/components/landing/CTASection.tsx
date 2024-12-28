@@ -14,7 +14,7 @@ const CTASection = () => {
           <h2 className="text-3xl font-bold mb-4">
             Ready to Digitize Your Assets?
           </h2>
-          <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
+          <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
             Create NFTs of your assets with complete ownership protection. 
             You keep full control - XMR Trust just provides the technology.
           </p>

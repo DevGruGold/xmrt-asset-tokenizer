@@ -10,7 +10,7 @@ const HeroSection = () => {
       <h1 className="text-4xl md:text-5xl font-bold mb-6">
         Tokenize Your Assets While Maintaining 100% Ownership
       </h1>
-      <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
+      <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
         Create NFTs of your assets with smart contracts that guarantee your ownership. 
         Unlike traditional banks, XMR Trust never takes control of your property - 
         we just help you digitize it.

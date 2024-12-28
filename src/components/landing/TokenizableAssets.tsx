@@ -40,8 +40,8 @@ const TokenizableAssets = () => {
                   <asset.icon className="h-6 w-6 text-blue-500" />
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-2">{asset.title}</h3>
-                  <p className="text-gray-400">{asset.description}</p>
+                  <h3 className="font-semibold mb-2 text-gray-900">{asset.title}</h3>
+                  <p className="text-gray-600">{asset.description}</p>
                 </div>
               </div>
             </CardContent>
