@@ -1,0 +1,22 @@
+{
+  "network": "ethereum",
+  "chainId": 1,
+  "contractName": "XMRTrustTokenizer",
+  "symbol": "XMRT",
+  "version": "1.0.0",
+  "features": {
+    "transferable": true,
+    "burnable": true,
+    "pausable": true,
+    "mintable": true
+  },
+  "security": {
+    "ownershipProof": "required",
+    "multiSig": true,
+    "upgradeability": "transparent"
+  },
+  "metadata": {
+    "name": "XMR Trust Asset Tokenizer",
+    "description": "Secure asset tokenization platform by XMR Trust"
+  }
+}
