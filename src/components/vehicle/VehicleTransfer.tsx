@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { SUPPORTED_CHAINS } from '@/contexts/Web3Context';
 
 export const VehicleTransfer = ({ tokenId }: { tokenId: string }) => {
   const { bridgeNFT, chainId, isActive } = useWeb3();
@@ -50,6 +51,8 @@ export const VehicleTransfer = ({ tokenId }: { tokenId: string }) => {
     );
   }
 
+  const currentChain = Object.values(SUPPORTED_CHAINS).find(c => c.chainId === chainId);
+
   return (
     <Card className="p-6 space-y-4">
       <h3 className="text-lg font-semibold">Transfer Vehicle NFT</h3>
@@ -57,7 +60,7 @@ export const VehicleTransfer = ({ tokenId }: { tokenId: string }) => {
         <div>
           <label className="block text-sm font-medium mb-2">Current Chain</label>
           <p className="text-gray-600">
-            {Object.values(SUPPORTED_CHAINS).find(c => c.chainId === chainId)?.name || 'Unknown'}
+            {currentChain?.name || 'Unknown'}
           </p>
         </div>
 

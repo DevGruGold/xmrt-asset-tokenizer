@@ -11,7 +11,7 @@ import TokenizeAsset from "./pages/TokenizeAsset";
 
 const queryClient = new QueryClient();
 
-const getLibrary = (provider: any) => {
+const getLibrary = (provider: any): providers.Web3Provider => {
   const library = new providers.Web3Provider(provider);
   library.pollingInterval = 12000;
   return library;

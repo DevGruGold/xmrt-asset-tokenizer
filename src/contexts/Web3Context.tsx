@@ -5,13 +5,19 @@ import { InjectedConnector } from '@web3-react/injected-connector';
 import { useToast } from '@/hooks/use-toast';
 
 export const SUPPORTED_CHAINS = {
+  ETHEREUM: {
+    chainId: 1,
+    name: 'Ethereum',
+    currency: 'ETH',
+    rpcUrl: 'https://mainnet.infura.io/v3/your-project-id',
+    blockExplorer: 'https://etherscan.io',
+  },
   AVALANCHE: {
     chainId: 43114,
     name: 'Avalanche',
     currency: 'AVAX',
     rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
     blockExplorer: 'https://snowtrace.io',
-    bridgeContract: '0x...' // Add actual bridge contract address
   },
   POLYGON: {
     chainId: 137,
@@ -19,9 +25,8 @@ export const SUPPORTED_CHAINS = {
     currency: 'MATIC',
     rpcUrl: 'https://polygon-rpc.com',
     blockExplorer: 'https://polygonscan.com',
-    bridgeContract: '0x...' // Add actual bridge contract address
   }
-};
+} as const;
 
 const injected = new InjectedConnector({
   supportedChainIds: Object.values(SUPPORTED_CHAINS).map(chain => chain.chainId)
@@ -32,8 +37,8 @@ interface Web3ContextType {
   disconnect: () => void;
   switchChain: (chainId: number) => Promise<void>;
   bridgeNFT: (tokenId: string, fromChainId: number, toChainId: number) => Promise<void>;
-  account: string | null;
-  chainId: number | null;
+  account: string | null | undefined;
+  chainId: number | undefined;
   isActive: boolean;
   isLoading: boolean;
   provider: providers.Web3Provider | null;
@@ -168,8 +173,8 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         disconnect,
         switchChain,
         bridgeNFT,
-        account: account || null,
-        chainId: chainId || null,
+        account,
+        chainId,
         isActive: active,
         isLoading,
         provider: library || null,
