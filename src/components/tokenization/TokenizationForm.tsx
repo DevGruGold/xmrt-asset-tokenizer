@@ -13,8 +13,9 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Upload, ExternalLink } from 'lucide-react';
+import { Loader2, Upload, ExternalLink, Wallet } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { useWeb3 } from '@/contexts/Web3Context';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +31,7 @@ const formSchema = z.object({
 });
 
 export const TokenizationForm = () => {
+  const { connect, disconnect, account, isActive, isLoading: isWalletLoading } = useWeb3();
   const [progress, setProgress] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -49,6 +51,15 @@ export const TokenizationForm = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!isActive) {
+      toast({
+        title: "Wallet Required",
+        description: "Please connect your wallet first",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsProcessing(true);
     
     try {
@@ -100,93 +111,119 @@ export const TokenizationForm = () => {
 
   return (
     <>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="assetName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Asset Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter asset name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Input placeholder="Describe your asset" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="file"
-            render={({ field: { onChange, value, ...field } }) => (
-              <FormItem>
-                <FormLabel>Asset File</FormLabel>
-                <FormControl>
-                  <div className="flex items-center justify-center w-full">
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-800">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="w-8 h-8 mb-2" />
-                        <p className="mb-2 text-sm">
-                          <span className="font-semibold">Click to upload</span> or drag and drop
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          Supported files: Images, PDFs, Documents
-                        </p>
-                      </div>
-                      <Input
-                        type="file"
-                        className="hidden"
-                        onChange={(e) => onChange(e.target.files)}
-                        {...field}
-                      />
-                    </label>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {isProcessing && (
-            <div className="space-y-2">
-              <Progress value={progress} className="w-full" />
-              <p className="text-sm text-center text-gray-400">
-                Tokenizing your asset... {progress}%
-              </p>
-            </div>
-          )}
-
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isProcessing}
+      {!isActive ? (
+        <div className="text-center space-y-4 py-8">
+          <h3 className="text-xl font-semibold">Connect Your Wallet</h3>
+          <p className="text-gray-600">Connect your MetaMask wallet to start tokenizing your assets</p>
+          <Button 
+            onClick={connect} 
+            disabled={isWalletLoading}
+            className="w-full max-w-sm"
           >
-            {isProcessing ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing
-              </>
+            {isWalletLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              'Tokenize Asset'
+              <Wallet className="mr-2 h-4 w-4" />
             )}
+            Connect Wallet
           </Button>
-        </form>
-      </Form>
+        </div>
+      ) : (
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="flex justify-between items-center mb-6">
+              <p className="text-sm text-gray-600">Connected: {account?.slice(0, 6)}...{account?.slice(-4)}</p>
+              <Button variant="outline" size="sm" onClick={disconnect}>
+                Disconnect
+              </Button>
+            </div>
+
+            <FormField
+              control={form.control}
+              name="assetName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Asset Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter asset name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Describe your asset" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="file"
+              render={({ field: { onChange, value, ...field } }) => (
+                <FormItem>
+                  <FormLabel>Asset File</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center justify-center w-full">
+                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-800">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <Upload className="w-8 h-8 mb-2" />
+                          <p className="mb-2 text-sm">
+                            <span className="font-semibold">Click to upload</span> or drag and drop
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            Supported files: Images, PDFs, Documents
+                          </p>
+                        </div>
+                        <Input
+                          type="file"
+                          className="hidden"
+                          onChange={(e) => onChange(e.target.files)}
+                          {...field}
+                        />
+                      </label>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {isProcessing && (
+              <div className="space-y-2">
+                <Progress value={progress} className="w-full" />
+                <p className="text-sm text-center text-gray-400">
+                  Tokenizing your asset... {progress}%
+                </p>
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing
+                </>
+              ) : (
+                'Tokenize Asset'
+              )}
+            </Button>
+          </form>
+        </Form>
+      )}
 
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
         <DialogContent>
