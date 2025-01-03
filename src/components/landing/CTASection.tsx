@@ -31,7 +31,46 @@ const CTASection = () => {
       }
 
       // For desktop or mobile with MetaMask installed
-      await connect();
+      const accounts = await connect();
+      
+      // Check if the user has a collectibles wallet
+      if (window.ethereum) {
+        try {
+          // Request to switch to the collectibles wallet if it exists
+          await window.ethereum.request({
+            method: 'wallet_requestPermissions',
+            params: [{
+              eth_accounts: {},
+            }]
+          });
+
+          // Check if the user has NFT support enabled
+          const hasNFTSupport = await window.ethereum.request({
+            method: 'wallet_invokeSnap',
+            params: ['npm:@metamask/nft-snap']
+          }).catch(() => false);
+
+          if (!hasNFTSupport) {
+            toast({
+              title: "NFT Support Required",
+              description: "Please enable NFT support in your MetaMask wallet to continue",
+            });
+            
+            // Guide user to enable NFT support
+            window.open('https://metamask.io/nft/', '_blank');
+            return;
+          }
+        } catch (error) {
+          console.error('Wallet permission error:', error);
+          toast({
+            title: "Wallet Setup Required",
+            description: "Please set up your collectibles wallet in MetaMask to continue",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       navigate('/tokenize');
     } catch (error) {
       console.error('Connection error:', error);
