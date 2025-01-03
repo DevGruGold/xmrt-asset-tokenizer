@@ -1,30 +1,25 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Web3Provider } from '@ethersproject/providers';
+import React, { createContext, useContext, useState } from 'react';
+import { providers } from 'ethers';
 import { useWeb3React } from '@web3-react/core';
 import { InjectedConnector } from '@web3-react/injected-connector';
 import { useToast } from '@/hooks/use-toast';
 
 export const SUPPORTED_CHAINS = {
-  ETHEREUM: {
-    chainId: 1,
-    name: 'Ethereum',
-    currency: 'ETH',
-    rpcUrl: 'https://mainnet.infura.io/v3/your-infura-id',
-    blockExplorer: 'https://etherscan.io'
+  AVALANCHE: {
+    chainId: 43114,
+    name: 'Avalanche',
+    currency: 'AVAX',
+    rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+    blockExplorer: 'https://snowtrace.io',
+    bridgeContract: '0x...' // Add actual bridge contract address
   },
   POLYGON: {
     chainId: 137,
     name: 'Polygon',
     currency: 'MATIC',
     rpcUrl: 'https://polygon-rpc.com',
-    blockExplorer: 'https://polygonscan.com'
-  },
-  AVALANCHE: {
-    chainId: 43114,
-    name: 'Avalanche',
-    currency: 'AVAX',
-    rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-    blockExplorer: 'https://snowtrace.io'
+    blockExplorer: 'https://polygonscan.com',
+    bridgeContract: '0x...' // Add actual bridge contract address
   }
 };
 
@@ -36,17 +31,18 @@ interface Web3ContextType {
   connect: () => Promise<void>;
   disconnect: () => void;
   switchChain: (chainId: number) => Promise<void>;
+  bridgeNFT: (tokenId: string, fromChainId: number, toChainId: number) => Promise<void>;
   account: string | null;
   chainId: number | null;
   isActive: boolean;
   isLoading: boolean;
-  provider: Web3Provider | null;
+  provider: providers.Web3Provider | null;
 }
 
 const Web3Context = createContext<Web3ContextType | null>(null);
 
 export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { activate, deactivate, account, chainId, active, library } = useWeb3React<Web3Provider>();
+  const { activate, deactivate, account, chainId, library, active } = useWeb3React<providers.Web3Provider>();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -97,24 +93,21 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         description: `Successfully switched to ${chain.name}`,
       });
     } catch (switchError: any) {
-      // This error code indicates that the chain has not been added to MetaMask
       if (switchError.code === 4902) {
         try {
           await library.provider.request({
             method: 'wallet_addEthereumChain',
-            params: [
-              {
-                chainId: `0x${targetChainId.toString(16)}`,
-                chainName: chain.name,
-                nativeCurrency: {
-                  name: chain.currency,
-                  symbol: chain.currency,
-                  decimals: 18,
-                },
-                rpcUrls: [chain.rpcUrl],
-                blockExplorerUrls: [chain.blockExplorer],
+            params: [{
+              chainId: `0x${targetChainId.toString(16)}`,
+              chainName: chain.name,
+              nativeCurrency: {
+                name: chain.currency,
+                symbol: chain.currency,
+                decimals: 18,
               },
-            ],
+              rpcUrls: [chain.rpcUrl],
+              blockExplorerUrls: [chain.blockExplorer],
+            }],
           });
         } catch (addError) {
           toast({
@@ -123,23 +116,50 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
             variant: "destructive",
           });
         }
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to switch network",
-          variant: "destructive",
-        });
       }
     }
   };
 
-  useEffect(() => {
-    injected.isAuthorized().then((isAuthorized) => {
-      if (isAuthorized) {
-        connect();
-      }
-    });
-  }, []);
+  const bridgeNFT = async (tokenId: string, fromChainId: number, toChainId: number) => {
+    if (!library || !account) {
+      throw new Error("Wallet not connected");
+    }
+
+    const fromChain = Object.values(SUPPORTED_CHAINS).find(c => c.chainId === fromChainId);
+    const toChain = Object.values(SUPPORTED_CHAINS).find(c => c.chainId === toChainId);
+
+    if (!fromChain || !toChain) {
+      throw new Error("Invalid chain selection");
+    }
+
+    try {
+      // First switch to the source chain
+      await switchChain(fromChainId);
+
+      // Simulate bridge transaction (replace with actual bridge contract interaction)
+      toast({
+        title: "Bridging NFT",
+        description: `Starting transfer from ${fromChain.name} to ${toChain.name}`,
+      });
+
+      // Here you would typically:
+      // 1. Approve the bridge contract to handle your NFT
+      // 2. Call the bridge contract's transfer function
+      // 3. Wait for confirmation on the destination chain
+
+      toast({
+        title: "Bridge Initiated",
+        description: "Your vehicle NFT transfer has been initiated. Please wait for confirmation.",
+      });
+
+    } catch (error: any) {
+      toast({
+        title: "Bridge Failed",
+        description: error.message || "Failed to transfer NFT between chains",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <Web3Context.Provider
@@ -147,6 +167,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         connect,
         disconnect,
         switchChain,
+        bridgeNFT,
         account: account || null,
         chainId: chainId || null,
         isActive: active,
