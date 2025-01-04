@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { createConfig, WagmiProvider } from 'wagmi';
 import { mainnet, polygon, avalanche } from 'wagmi/chains';
 import { createWeb3Modal } from '@web3modal/wagmi';
-import { defaultWagmiConfig } from '@web3modal/wagmi/config';
 import { Web3Provider } from '@/contexts/Web3Context';
 import Index from "./pages/Index";
 import TokenizeAsset from "./pages/TokenizeAsset";
@@ -24,14 +23,15 @@ const metadata = {
 };
 
 const chains = [mainnet, polygon, avalanche];
-const config = defaultWagmiConfig({
+const config = createConfig({
   chains,
   projectId,
   metadata,
+  ssr: false
 });
 
-createWeb3Modal({ 
-  wagmiConfig: config, 
+createWeb3Modal({
+  wagmiConfig: config,
   projectId,
   chains,
   themeMode: 'dark',

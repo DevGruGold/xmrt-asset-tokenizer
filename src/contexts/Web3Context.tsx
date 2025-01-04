@@ -42,7 +42,7 @@ const Web3Context = createContext<Web3ContextType | null>(null);
 export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const { connectAsync } = useConnect();
+  const { connectAsync, isPending } = useConnect();
   const { disconnectAsync } = useDisconnect();
   const { toast } = useToast();
 
@@ -175,7 +175,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         account: address,
         chainId,
         isActive: isConnected,
-        isLoading: false,
+        isLoading: isPending,
       }}
     >
       {children}
