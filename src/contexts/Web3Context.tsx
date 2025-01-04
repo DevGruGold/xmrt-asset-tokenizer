@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react';
-import { useAccount, useConnect, useDisconnect, useNetwork } from 'wagmi';
+import { useAccount, useConnect, useDisconnect, useChainId } from 'wagmi';
 import { useToast } from '@/hooks/use-toast';
 
 export const SUPPORTED_CHAINS = {
@@ -41,7 +41,7 @@ const Web3Context = createContext<Web3ContextType | null>(null);
 
 export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { address, isConnected } = useAccount();
-  const { chain } = useNetwork();
+  const chainId = useChainId();
   const { connectAsync } = useConnect();
   const { disconnectAsync } = useDisconnect();
   const { toast } = useToast();
@@ -173,7 +173,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         switchChain,
         bridgeNFT,
         account: address,
-        chainId: chain?.id,
+        chainId,
         isActive: isConnected,
         isLoading: false,
       }}
