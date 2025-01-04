@@ -1,7 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
-import { providers } from 'ethers';
-import { useWeb3React } from '@web3-react/core';
-import { InjectedConnector } from '@web3-react/injected-connector';
+import React, { createContext, useContext } from 'react';
+import { useAccount, useConnect, useDisconnect, useNetwork } from 'wagmi';
 import { useToast } from '@/hooks/use-toast';
 
 export const SUPPORTED_CHAINS = {
@@ -28,58 +26,61 @@ export const SUPPORTED_CHAINS = {
   }
 } as const;
 
-const injected = new InjectedConnector({
-  supportedChainIds: Object.values(SUPPORTED_CHAINS).map(chain => chain.chainId)
-});
-
 interface Web3ContextType {
   connect: () => Promise<void>;
   disconnect: () => void;
   switchChain: (chainId: number) => Promise<void>;
   bridgeNFT: (tokenId: string, fromChainId: number, toChainId: number) => Promise<void>;
-  account: string | null | undefined;
+  account: string | undefined;
   chainId: number | undefined;
   isActive: boolean;
   isLoading: boolean;
-  provider: providers.Web3Provider | null;
 }
 
 const Web3Context = createContext<Web3ContextType | null>(null);
 
 export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { activate, deactivate, account, chainId, library, active } = useWeb3React<providers.Web3Provider>();
-  const [isLoading, setIsLoading] = useState(false);
+  const { address, isConnected } = useAccount();
+  const { chain } = useNetwork();
+  const { connectAsync } = useConnect();
+  const { disconnectAsync } = useDisconnect();
   const { toast } = useToast();
 
   const connect = async () => {
-    setIsLoading(true);
     try {
-      await activate(injected);
+      await connectAsync();
       toast({
         title: "Wallet Connected",
-        description: "Successfully connected to MetaMask",
+        description: "Successfully connected to your wallet",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Connection Failed",
-        description: "Please install MetaMask or try again",
+        description: error.message || "Failed to connect wallet",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
+      throw error;
     }
   };
 
-  const disconnect = () => {
-    deactivate();
-    toast({
-      title: "Wallet Disconnected",
-      description: "Your wallet has been disconnected",
-    });
+  const disconnect = async () => {
+    try {
+      await disconnectAsync();
+      toast({
+        title: "Wallet Disconnected",
+        description: "Your wallet has been disconnected",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Disconnect Failed",
+        description: error.message || "Failed to disconnect wallet",
+        variant: "destructive",
+      });
+    }
   };
 
   const switchChain = async (targetChainId: number) => {
-    if (!library?.provider?.request) {
+    if (!window.ethereum) {
       throw new Error("No provider available");
     }
 
@@ -89,7 +90,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      await library.provider.request({
+      await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: `0x${targetChainId.toString(16)}` }],
       });
@@ -100,7 +101,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (switchError: any) {
       if (switchError.code === 4902) {
         try {
-          await library.provider.request({
+          await window.ethereum.request({
             method: 'wallet_addEthereumChain',
             params: [{
               chainId: `0x${targetChainId.toString(16)}`,
@@ -126,7 +127,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const bridgeNFT = async (tokenId: string, fromChainId: number, toChainId: number) => {
-    if (!library || !account) {
+    if (!isConnected || !address) {
       throw new Error("Wallet not connected");
     }
 
@@ -141,16 +142,13 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
       // First switch to the source chain
       await switchChain(fromChainId);
 
-      // Simulate bridge transaction (replace with actual bridge contract interaction)
       toast({
         title: "Bridging NFT",
         description: `Starting transfer from ${fromChain.name} to ${toChain.name}`,
       });
 
-      // Here you would typically:
-      // 1. Approve the bridge contract to handle your NFT
-      // 2. Call the bridge contract's transfer function
-      // 3. Wait for confirmation on the destination chain
+      // Simulate bridge transaction (replace with actual bridge contract interaction)
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       toast({
         title: "Bridge Initiated",
@@ -163,6 +161,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         description: error.message || "Failed to transfer NFT between chains",
         variant: "destructive",
       });
+      throw error;
     }
   };
 
@@ -173,11 +172,10 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         disconnect,
         switchChain,
         bridgeNFT,
-        account,
-        chainId,
-        isActive: active,
-        isLoading,
-        provider: library || null,
+        account: address,
+        chainId: chain?.id,
+        isActive: isConnected,
+        isLoading: false,
       }}
     >
       {children}

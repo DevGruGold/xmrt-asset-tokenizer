@@ -8,43 +8,18 @@ import { useToast } from '@/hooks/use-toast';
 
 const CTASection = () => {
   const navigate = useNavigate();
-  const { connect } = useWeb3();
+  const { connect, isActive } = useWeb3();
   const { toast } = useToast();
 
   const handleTokenizeClick = async () => {
     try {
-      // Check if we're on mobile and MetaMask is not installed
-      const isMobileWithoutMM = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
-        && !window.ethereum;
-
-      if (isMobileWithoutMM) {
-        // Deep link to MetaMask
-        const dappUrl = window.location.href;
-        const metamaskAppDeepLink = `https://metamask.app.link/dapp/${dappUrl}`;
-        window.location.href = metamaskAppDeepLink;
-        
-        toast({
-          title: "Opening MetaMask",
-          description: "Please approve the connection request in MetaMask mobile app",
-        });
-        return;
+      if (!isActive) {
+        await connect();
       }
 
-      // For desktop or mobile with MetaMask installed
-      const accounts = await connect();
-      
-      // Check if the user has a collectibles wallet
+      // Check if the user has NFT support enabled
       if (window.ethereum) {
         try {
-          // Request to switch to the collectibles wallet if it exists
-          await window.ethereum.request({
-            method: 'wallet_requestPermissions',
-            params: [{
-              eth_accounts: {},
-            }]
-          });
-
-          // Check if the user has NFT support enabled
           const hasNFTSupport = await window.ethereum.request({
             method: 'wallet_invokeSnap',
             params: ['npm:@metamask/nft-snap']
@@ -61,7 +36,7 @@ const CTASection = () => {
             return;
           }
         } catch (error) {
-          console.error('Wallet permission error:', error);
+          console.error('NFT support check error:', error);
           toast({
             title: "Wallet Setup Required",
             description: "Please set up your collectibles wallet in MetaMask to continue",
@@ -76,7 +51,7 @@ const CTASection = () => {
       console.error('Connection error:', error);
       toast({
         title: "Connection Failed",
-        description: "Please make sure MetaMask is installed and try again",
+        description: "Please make sure your wallet is properly set up and try again",
         variant: "destructive",
       });
     }
