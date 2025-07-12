@@ -50,7 +50,8 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const connect = async () => {
     try {
-      const connector = connectors.find(c => c.name === 'MetaMask') || connectors[0];
+      // Use the first available connector (Web3Modal handles the connector selection)
+      const connector = connectors[0];
       if (connector) {
         await connectAsync({ connector });
         toast({
