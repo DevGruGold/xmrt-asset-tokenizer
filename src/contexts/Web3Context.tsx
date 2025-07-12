@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext } from 'react';
-import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } from 'wagmi';
+import { useAccount, useDisconnect, useChainId, useSwitchChain } from 'wagmi';
 import { useToast } from '@/hooks/use-toast';
 
 export const SUPPORTED_CHAINS = {
@@ -43,22 +43,27 @@ const Web3Context = createContext<Web3ContextType | null>(null);
 export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const { connectAsync, connectors, isPending } = useConnect();
   const { disconnectAsync } = useDisconnect();
   const { switchChainAsync } = useSwitchChain();
   const { toast } = useToast();
 
   const connect = async () => {
     try {
-      // Use the first available connector (Web3Modal handles the connector selection)
-      const connector = connectors[0];
-      if (connector) {
-        await connectAsync({ connector });
-        toast({
-          title: "Wallet Connected",
-          description: "Successfully connected to your wallet",
-        });
+      // Web3Modal handles connection - just open the modal
+      const web3modal = document.querySelector('w3m-button');
+      if (web3modal) {
+        (web3modal as any).click();
+      } else {
+        // Fallback - trigger Web3Modal programmatically
+        if (window.ethereum) {
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+        }
       }
+      
+      toast({
+        title: "Wallet Connected",
+        description: "Successfully connected to your wallet",
+      });
     } catch (error: any) {
       toast({
         title: "Connection Failed",
@@ -156,7 +161,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         account: address,
         chainId,
         isActive: isConnected,
-        isLoading: isPending,
+        isLoading: false, // Web3Modal handles loading states
       }}
     >
       {children}
