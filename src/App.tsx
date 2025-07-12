@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,9 +17,9 @@ const queryClient = new QueryClient();
 const projectId = 'b59c16c98b22d36a30ec986c5e28dde6';
 
 const metadata = {
-  name: 'XMR Trust',
-  description: 'Tokenize your assets securely',
-  url: 'https://xmr.trust',
+  name: 'CashDapp by MobileMonero.com',
+  description: 'Tokenize your assets securely with CashDapp',
+  url: 'https://cashdapp.mobilemonero.com',
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 };
 

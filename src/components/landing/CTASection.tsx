@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Pickaxe, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useWeb3 } from '@/contexts/Web3Context';
 import { useToast } from '@/hooks/use-toast';
@@ -57,6 +58,14 @@ const CTASection = () => {
     }
   };
 
+  const handleStartMining = () => {
+    window.open('https://xmrtstart.vercel.app', '_blank');
+  };
+
+  const handleLearnMore = () => {
+    window.open('https://xmrtsolutions.vercel.app', '_blank');
+  };
+
   return (
     <div className="text-center">
       <Card>
@@ -66,15 +75,20 @@ const CTASection = () => {
           </h2>
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
             Create NFTs of your assets with complete ownership protection. 
-            You keep full control - XMR Trust just provides the technology.
+            You keep full control - CashDapp just provides the technology.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" onClick={handleTokenizeClick}>
               Start Tokenizing
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            <Button variant="outline">
-              Learn More About Ownership
+            <Button variant="outline" onClick={handleStartMining}>
+              <Pickaxe className="mr-2 h-4 w-4" />
+              Start Mining
+            </Button>
+            <Button variant="outline" onClick={handleLearnMore}>
+              <BookOpen className="mr-2 h-4 w-4" />
+              Learn More
             </Button>
           </div>
         </CardContent>
