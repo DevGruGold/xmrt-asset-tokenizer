@@ -1,8 +1,14 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 export const SUPPORTED_CHAINS = {
+  SEPOLIA: {
+    chainId: 11155111,
+    name: 'Sepolia',
+    currency: 'ETH',
+    rpcUrl: 'https://sepolia.infura.io/v3/c843a693bc5d43d1aee471d2491f2414',
+    blockExplorer: 'https://sepolia.etherscan.io',
+  },
   ETHEREUM: {
     chainId: 1,
     name: 'Ethereum',
