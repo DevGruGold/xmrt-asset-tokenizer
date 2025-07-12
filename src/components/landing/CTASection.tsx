@@ -17,42 +17,12 @@ const CTASection = () => {
       if (!isActive) {
         await connect();
       }
-
-      // Check if the user has NFT support enabled
-      if (window.ethereum) {
-        try {
-          const hasNFTSupport = await window.ethereum.request({
-            method: 'wallet_invokeSnap',
-            params: ['npm:@metamask/nft-snap']
-          }).catch(() => false);
-
-          if (!hasNFTSupport) {
-            toast({
-              title: "NFT Support Required",
-              description: "Please enable NFT support in your MetaMask wallet to continue",
-            });
-            
-            // Guide user to enable NFT support
-            window.open('https://metamask.io/nft/', '_blank');
-            return;
-          }
-        } catch (error) {
-          console.error('NFT support check error:', error);
-          toast({
-            title: "Wallet Setup Required",
-            description: "Please set up your collectibles wallet in MetaMask to continue",
-            variant: "destructive",
-          });
-          return;
-        }
-      }
-
       navigate('/tokenize');
     } catch (error) {
       console.error('Connection error:', error);
       toast({
         title: "Connection Failed",
-        description: "Please make sure your wallet is properly set up and try again",
+        description: "Please make sure MetaMask is installed and try again",
         variant: "destructive",
       });
     }

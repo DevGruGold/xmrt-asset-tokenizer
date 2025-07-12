@@ -1,6 +1,5 @@
 
-import React, { createContext, useContext } from 'react';
-import { useAccount, useDisconnect, useChainId, useSwitchChain } from 'wagmi';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 export const SUPPORTED_CHAINS = {
@@ -8,7 +7,7 @@ export const SUPPORTED_CHAINS = {
     chainId: 1,
     name: 'Ethereum',
     currency: 'ETH',
-    rpcUrl: 'https://mainnet.infura.io/v3/your-project-id',
+    rpcUrl: 'https://mainnet.infura.io/v3/c843a693bc5d43d1aee471d2491f2414',
     blockExplorer: 'https://etherscan.io',
   },
   AVALANCHE: {
@@ -41,29 +40,86 @@ interface Web3ContextType {
 const Web3Context = createContext<Web3ContextType | null>(null);
 
 export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { address, isConnected } = useAccount();
-  const chainId = useChainId();
-  const { disconnectAsync } = useDisconnect();
-  const { switchChainAsync } = useSwitchChain();
+  const [account, setAccount] = useState<string | undefined>();
+  const [chainId, setChainId] = useState<number | undefined>();
+  const [isActive, setIsActive] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const connect = async () => {
-    try {
-      // Web3Modal handles connection - just open the modal
-      const web3modal = document.querySelector('w3m-button');
-      if (web3modal) {
-        (web3modal as any).click();
-      } else {
-        // Fallback - trigger Web3Modal programmatically
-        if (window.ethereum) {
-          await window.ethereum.request({ method: 'eth_requestAccounts' });
+  useEffect(() => {
+    const checkConnection = async () => {
+      if (window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts.length > 0) {
+            setAccount(accounts[0]);
+            setIsActive(true);
+            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            setChainId(parseInt(chainId, 16));
+          }
+        } catch (error) {
+          console.error('Error checking connection:', error);
         }
       }
-      
+    };
+
+    const handleAccountsChanged = (accounts: string[]) => {
+      if (accounts.length > 0) {
+        setAccount(accounts[0]);
+        setIsActive(true);
+      } else {
+        setAccount(undefined);
+        setIsActive(false);
+      }
+    };
+
+    const handleChainChanged = (chainId: string) => {
+      setChainId(parseInt(chainId, 16));
+    };
+
+    checkConnection();
+
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      window.ethereum.on('chainChanged', handleChainChanged);
+    }
+
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        window.ethereum.removeListener('chainChanged', handleChainChanged);
+      }
+    };
+  }, []);
+
+  const connect = async () => {
+    if (!window.ethereum) {
       toast({
-        title: "Wallet Connected",
-        description: "Successfully connected to your wallet",
+        title: "MetaMask Not Found",
+        description: "Please install MetaMask to connect your wallet",
+        variant: "destructive",
       });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const accounts = await window.ethereum.request({ 
+        method: 'eth_requestAccounts' 
+      });
+      
+      if (accounts.length > 0) {
+        setAccount(accounts[0]);
+        setIsActive(true);
+        
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        setChainId(parseInt(chainId, 16));
+        
+        toast({
+          title: "Wallet Connected",
+          description: "Successfully connected to MetaMask",
+        });
+      }
     } catch (error: any) {
       toast({
         title: "Connection Failed",
@@ -71,23 +127,20 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const disconnect = async () => {
-    try {
-      await disconnectAsync();
-      toast({
-        title: "Wallet Disconnected",
-        description: "Your wallet has been disconnected",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Disconnect Failed",
-        description: error.message || "Failed to disconnect wallet",
-        variant: "destructive",
-      });
-    }
+    setAccount(undefined);
+    setIsActive(false);
+    setChainId(undefined);
+    
+    toast({
+      title: "Wallet Disconnected",
+      description: "Your wallet has been disconnected",
+    });
   };
 
   const switchChain = async (targetChainId: number) => {
@@ -96,24 +149,68 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error("Unsupported chain");
     }
 
+    if (!window.ethereum) {
+      throw new Error("MetaMask not found");
+    }
+
     try {
-      await switchChainAsync({ chainId: targetChainId });
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: `0x${targetChainId.toString(16)}` }],
+      });
+      
+      setChainId(targetChainId);
+      
       toast({
         title: "Network Changed",
         description: `Successfully switched to ${chain.name}`,
       });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to switch network",
-        variant: "destructive",
-      });
-      throw error;
+      if (error.code === 4902) {
+        // Chain not added to MetaMask
+        try {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: `0x${targetChainId.toString(16)}`,
+              chainName: chain.name,
+              nativeCurrency: {
+                name: chain.currency,
+                symbol: chain.currency,
+                decimals: 18,
+              },
+              rpcUrls: [chain.rpcUrl],
+              blockExplorerUrls: [chain.blockExplorer],
+            }],
+          });
+          
+          setChainId(targetChainId);
+          
+          toast({
+            title: "Network Added & Changed",
+            description: `Successfully added and switched to ${chain.name}`,
+          });
+        } catch (addError: any) {
+          toast({
+            title: "Error",
+            description: addError.message || "Failed to add network",
+            variant: "destructive",
+          });
+          throw addError;
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to switch network",
+          variant: "destructive",
+        });
+        throw error;
+      }
     }
   };
 
   const bridgeNFT = async (tokenId: string, fromChainId: number, toChainId: number) => {
-    if (!isConnected || !address) {
+    if (!isActive || !account) {
       throw new Error("Wallet not connected");
     }
 
@@ -158,10 +255,10 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         disconnect,
         switchChain,
         bridgeNFT,
-        account: address,
+        account,
         chainId,
-        isActive: isConnected,
-        isLoading: false, // Web3Modal handles loading states
+        isActive,
+        isLoading,
       }}
     >
       {children}
