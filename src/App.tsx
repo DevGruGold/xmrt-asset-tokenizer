@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { createConfig, WagmiProvider } from 'wagmi';
+import { createConfig, WagmiProvider, http } from 'wagmi';
 import { mainnet, polygon, avalanche } from 'wagmi/chains';
 import { createWeb3Modal } from '@web3modal/wagmi';
 import { Web3Provider } from '@/contexts/Web3Context';
@@ -23,18 +23,18 @@ const metadata = {
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 };
 
-const chains = [mainnet, polygon, avalanche];
 const config = createConfig({
-  chains,
-  projectId,
-  metadata,
-  ssr: false
+  chains: [mainnet, polygon, avalanche],
+  transports: {
+    [mainnet.id]: http(),
+    [polygon.id]: http(),
+    [avalanche.id]: http(),
+  },
 });
 
 createWeb3Modal({
   wagmiConfig: config,
   projectId,
-  chains,
   themeMode: 'dark',
   themeVariables: {
     '--w3m-font-family': 'Inter, sans-serif',
