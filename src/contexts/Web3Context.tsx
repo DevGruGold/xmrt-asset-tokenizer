@@ -1,5 +1,6 @@
+
 import React, { createContext, useContext } from 'react';
-import { useAccount, useConnect, useDisconnect, useChainId } from 'wagmi';
+import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } from 'wagmi';
 import { useToast } from '@/hooks/use-toast';
 
 export const SUPPORTED_CHAINS = {
@@ -42,17 +43,21 @@ const Web3Context = createContext<Web3ContextType | null>(null);
 export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const { connectAsync, isPending } = useConnect();
+  const { connectAsync, connectors, isPending } = useConnect();
   const { disconnectAsync } = useDisconnect();
+  const { switchChainAsync } = useSwitchChain();
   const { toast } = useToast();
 
   const connect = async () => {
     try {
-      await connectAsync();
-      toast({
-        title: "Wallet Connected",
-        description: "Successfully connected to your wallet",
-      });
+      const connector = connectors.find(c => c.name === 'MetaMask') || connectors[0];
+      if (connector) {
+        await connectAsync({ connector });
+        toast({
+          title: "Wallet Connected",
+          description: "Successfully connected to your wallet",
+        });
+      }
     } catch (error: any) {
       toast({
         title: "Connection Failed",
@@ -80,49 +85,24 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const switchChain = async (targetChainId: number) => {
-    if (!window.ethereum) {
-      throw new Error("No provider available");
-    }
-
     const chain = Object.values(SUPPORTED_CHAINS).find(c => c.chainId === targetChainId);
     if (!chain) {
       throw new Error("Unsupported chain");
     }
 
     try {
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: `0x${targetChainId.toString(16)}` }],
-      });
+      await switchChainAsync({ chainId: targetChainId });
       toast({
         title: "Network Changed",
         description: `Successfully switched to ${chain.name}`,
       });
-    } catch (switchError: any) {
-      if (switchError.code === 4902) {
-        try {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: `0x${targetChainId.toString(16)}`,
-              chainName: chain.name,
-              nativeCurrency: {
-                name: chain.currency,
-                symbol: chain.currency,
-                decimals: 18,
-              },
-              rpcUrls: [chain.rpcUrl],
-              blockExplorerUrls: [chain.blockExplorer],
-            }],
-          });
-        } catch (addError) {
-          toast({
-            title: "Error",
-            description: "Failed to add network to MetaMask",
-            variant: "destructive",
-          });
-        }
-      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to switch network",
+        variant: "destructive",
+      });
+      throw error;
     }
   };
 
