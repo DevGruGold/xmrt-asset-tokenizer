@@ -9,13 +9,12 @@ import { Wallet, Coins, AlertCircle, CheckCircle, ExternalLink } from 'lucide-re
 const SepoliaFaucet = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [lastClaim, setLastClaim] = useState<string | null>(null);
-  const { account, connect, isActive, switchToSepolia } = useWeb3();
+  const { account, connect, isActive } = useWeb3();
   const { toast } = useToast();
 
   const handleConnect = async () => {
     try {
       await connect();
-      await switchToSepolia();
       toast({
         title: "Wallet Connected",
         description: "Successfully connected to Sepolia testnet",

@@ -12,7 +12,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="max-w-6xl mx-auto px-4 pt-20 pb-16">
+      <div className="max-w-6xl mx-auto px-4 pt-10 pb-16">
         <HeroSection />
         <div className="flex justify-center mb-8">
           <Button onClick={handleStartMining} size="lg" className="bg-orange-600 hover:bg-orange-700 text-white">

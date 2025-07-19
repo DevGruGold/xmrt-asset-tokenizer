@@ -1,43 +1,43 @@
-# XMRT Asset Tokenizer
+# MobileMonero - Testnet Faucet & Mining Platform
 
-**A Secure Asset Tokenization Platform by XMR Trust**
+**A Secure Testnet Faucet and Mining Platform for Monero Development**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-97.9%25-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18.x-blue.svg)](https://reactjs.org/)
-[![Ethereum](https://img.shields.io/badge/Blockchain-Ethereum-purple.svg)](https://ethereum.org/)
+[![Ethereum](https://img.shields.io/badge/Testnet-Sepolia-purple.svg)](https://sepolia.etherscan.io/)
 
 ## Overview
 
-XMRT Asset Tokenizer is a cutting-edge decentralized application (dApp) that enables secure tokenization of real-world assets, with a specialized focus on vehicle NFT management. Built on the Ethereum blockchain, this platform provides a comprehensive solution for converting physical assets into digital tokens, ensuring transparency, security, and immutable ownership records.
+MobileMonero is a comprehensive platform that combines a Sepolia testnet faucet with integrated Monero mining capabilities. Built for developers and cryptocurrency enthusiasts, this platform provides free testnet tokens for development while offering seamless access to Monero mining through our partner platform.
 
-The platform leverages the power of blockchain technology to create a trustless environment where asset ownership can be verified, transferred, and managed without intermediaries. Whether you're looking to tokenize vehicles, equipment, or other valuable assets, XMRT provides the infrastructure and user interface to make the process seamless and secure.
+The application leverages modern web technologies and blockchain integration to create a user-friendly experience for both testnet development and cryptocurrency mining operations.
 
 ## Key Features
 
-### 🚗 Vehicle NFT Management
-- **Digital Vehicle Certificates**: Convert vehicle ownership documents into secure NFTs
-- **Ownership Verification**: Immutable proof of ownership stored on the blockchain
-- **Transfer Functionality**: Seamless transfer of vehicle ownership between parties
-- **History Tracking**: Complete ownership history and transaction records
+### 💧 Sepolia Testnet Faucet
+- **Free Test Tokens**: Get free Sepolia testnet tokens for development
+- **MetaMask Integration**: Seamless wallet connection and token claiming
+- **Rate Limiting**: Fair distribution with built-in rate limiting
+- **Token Information**: Real-time token balance and transaction tracking
 
-### 🔐 Secure Tokenization
-- **Multi-Signature Security**: Enhanced security through multi-signature wallet integration
-- **Ownership Proof Requirements**: Mandatory verification before token creation
-- **Pausable Contracts**: Emergency pause functionality for enhanced security
-- **Burnable Tokens**: Ability to destroy tokens when assets are retired
+### ⛏️ Monero Mining Integration
+- **One-Click Mining**: Direct integration with xmrtstart.vercel.app
+- **Mobile Optimized**: Designed for mobile Monero mining
+- **Secure Access**: Safe redirect to verified mining platform
+- **Performance Focused**: Optimized for efficient mining operations
 
 ### 🌐 Web3 Integration
 - **MetaMask Support**: Native integration with MetaMask wallet
-- **Ethereum Mainnet**: Production deployment on Ethereum mainnet
 - **Sepolia Testnet**: Development and testing environment support
-- **Cross-Chain Compatibility**: Designed for future multi-chain expansion
+- **Ethereum Compatible**: ERC-20 token standard compliance
+- **Real-time Updates**: Live transaction status and confirmations
 
-### 💼 Enterprise Features
-- **Batch Processing**: Handle multiple asset tokenizations simultaneously
-- **API Integration**: RESTful API for enterprise system integration
-- **Compliance Tools**: Built-in compliance checking and reporting
-- **Audit Trail**: Complete audit trail for regulatory compliance
+### 🎨 Modern UI/UX
+- **Responsive Design**: Works perfectly on all device sizes
+- **Dark/Light Mode**: Automatic theme detection and switching
+- **Accessible**: WCAG compliant and screen reader friendly
+- **Fast Loading**: Optimized performance with Vite build system
 
 ## Technology Stack
 
@@ -48,11 +48,11 @@ The platform leverages the power of blockchain technology to create a trustless 
 - **Tailwind CSS**: Utility-first CSS framework for responsive design
 - **shadcn/ui**: Modern component library for consistent UI/UX
 
-### Blockchain
-- **Ethereum**: Primary blockchain network for token deployment
-- **Solidity**: Smart contract development language
-- **Web3.js**: Blockchain interaction library
+### Blockchain Integration
+- **Ethereum Sepolia**: Testnet environment for development
 - **MetaMask**: Primary wallet integration for user authentication
+- **Web3 Provider**: Direct blockchain interaction capabilities
+- **ERC-20 Tokens**: Standard token implementation for testing
 
 ### Development Tools
 - **ESLint**: Code linting and quality assurance
@@ -62,41 +62,57 @@ The platform leverages the power of blockchain technology to create a trustless 
 
 ## Smart Contract Details
 
-The XMRT tokenizer smart contract implements the following specifications:
+The MobileMonero testnet faucet interacts with the following token contract:
 
 | Property | Value |
 |----------|-------|
-| **Contract Name** | XMRTrustTokenizer |
-| **Symbol** | XMRT |
-| **Version** | 1.0.0 |
-| **Network** | Ethereum Mainnet |
-| **Chain ID** | 1 |
+| **Contract Address** | 0x77307DFbc436224d5e6f2048d2b6bDfA66998a15 |
+| **Network** | Sepolia Testnet |
+| **Chain ID** | 11155111 |
+| **Token Standard** | ERC-20 |
 
-### Contract Features
-- **Transferable**: Tokens can be transferred between addresses
-- **Burnable**: Tokens can be permanently destroyed
-- **Pausable**: Contract can be paused for emergency situations
-- **Mintable**: New tokens can be created by authorized addresses
-- **Ownership Proof**: Requires verification before token creation
-- **Multi-Signature**: Enhanced security through multi-sig requirements
-- **Upgradeability**: Transparent upgrade mechanism for future improvements
+### Faucet Features
+- **Daily Limits**: Controlled token distribution
+- **Address Verification**: MetaMask address validation
+- **Transaction Tracking**: Complete transaction history
+- **Anti-Spam Protection**: Built-in rate limiting and abuse prevention
 
 ## Getting Started
 
 ### Prerequisites
 
-Before you begin, ensure you have the following installed:
-- **Node.js** (version 18.x or higher)
-- **npm** or **bun** package manager
-- **MetaMask** browser extension
-- **Git** for version control
+Before you begin, ensure you have the following:
+- **MetaMask** browser extension installed
+- **Sepolia ETH** for transaction fees (get from official Sepolia faucets)
+- **Modern Browser** with Web3 support
 
-### Installation
+### Quick Start
+
+1. **Visit the Platform**
+   Navigate to the MobileMonero platform in your web browser
+
+2. **Connect MetaMask**
+   - Click "Connect Wallet" 
+   - Approve the connection in MetaMask
+   - Ensure you're on Sepolia testnet
+
+3. **Claim Test Tokens**
+   - Enter your wallet address
+   - Click "Request Tokens"
+   - Confirm the transaction in MetaMask
+
+4. **Start Mining** (Optional)
+   - Click "Start Mining" to access the mining platform
+   - Follow the setup instructions on xmrtstart.vercel.app
+
+### Development Setup
+
+For developers wanting to run locally:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/DevGruGold/xmrt-asset-tokenizer.git
-   cd xmrt-asset-tokenizer
+   git clone https://github.com/your-repo/mobilemonero.git
+   cd mobilemonero
    ```
 
 2. **Install dependencies**
@@ -108,13 +124,7 @@ Before you begin, ensure you have the following installed:
    bun install
    ```
 
-3. **Configure environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
-
-4. **Start the development server**
+3. **Start the development server**
    ```bash
    # Using npm
    npm run dev
@@ -123,112 +133,95 @@ Before you begin, ensure you have the following installed:
    bun run dev
    ```
 
-5. **Open your browser**
-   Navigate to `http://localhost:5173` to access the application
-
-### Environment Configuration
-
-Create a `.env` file in the root directory with the following variables:
-
-```env
-VITE_ETHEREUM_RPC_URL=your_ethereum_rpc_url
-VITE_CONTRACT_ADDRESS=your_contract_address
-VITE_SEPOLIA_RPC_URL=your_sepolia_rpc_url
-VITE_ENVIRONMENT=development
-```
+4. **Open your browser**
+   Navigate to `http://localhost:5173`
 
 ## Usage Guide
 
-### Connecting Your Wallet
+### Using the Faucet
 
-1. **Install MetaMask**: Download and install the MetaMask browser extension
-2. **Create or Import Wallet**: Set up your Ethereum wallet
-3. **Connect to Application**: Click "Connect Wallet" in the application
-4. **Approve Connection**: Approve the connection request in MetaMask
+1. **Connect Your Wallet**
+   - Install MetaMask if you haven't already
+   - Switch to Sepolia testnet in MetaMask
+   - Click "Connect Wallet" in the application
 
-### Tokenizing an Asset
+2. **Request Tokens**
+   - Your wallet address will be automatically filled
+   - Click "Request Tokens" to initiate the claim
+   - Confirm the transaction in MetaMask
+   - Wait for transaction confirmation
 
-1. **Navigate to Tokenization**: Go to the "Tokenize Asset" page
-2. **Fill Asset Details**: Provide comprehensive asset information
-3. **Upload Documentation**: Attach relevant ownership documents
-4. **Review Information**: Verify all details are correct
-5. **Submit Transaction**: Confirm the transaction in MetaMask
-6. **Receive NFT**: Your asset NFT will be minted to your wallet
+3. **Check Your Balance**
+   - View your token balance in the faucet interface
+   - Check transaction history on Sepolia Etherscan
+   - Tokens are immediately available for use
 
-### Transferring Assets
+### Mining Integration
 
-1. **Access Your Assets**: View your tokenized assets in the dashboard
-2. **Select Asset**: Choose the asset you want to transfer
-3. **Enter Recipient**: Provide the recipient's Ethereum address
-4. **Confirm Transfer**: Review and confirm the transfer details
-5. **Execute Transaction**: Complete the transfer via MetaMask
+1. **Access Mining Platform**
+   - Click the "Start Mining" button
+   - You'll be redirected to xmrtstart.vercel.app
+   - Follow the mining setup instructions
 
-## API Documentation
+2. **Mobile Mining**
+   - The platform is optimized for mobile devices
+   - Efficient mining algorithms for mobile hardware
+   - Real-time mining statistics and earnings
 
-### REST Endpoints
+## API Integration
 
-The XMRT platform provides RESTful API endpoints for enterprise integration:
+### Faucet API
 
-#### Asset Management
-- `GET /api/assets` - Retrieve all assets
-- `POST /api/assets` - Create new asset token
-- `GET /api/assets/{id}` - Get specific asset details
-- `PUT /api/assets/{id}` - Update asset information
-- `DELETE /api/assets/{id}` - Burn asset token
+The platform provides API endpoints for programmatic access:
 
-#### Transfer Operations
-- `POST /api/transfers` - Initiate asset transfer
-- `GET /api/transfers/{id}` - Get transfer status
-- `GET /api/transfers/history` - Get transfer history
+```javascript
+// Check faucet status
+GET /api/faucet/status
 
-#### Verification
-- `POST /api/verify` - Verify asset ownership
-- `GET /api/verify/{assetId}` - Get verification status
-
-### GraphQL Support
-
-For advanced querying capabilities, the platform supports GraphQL:
-
-```graphql
-query GetAssetDetails($assetId: ID!) {
-  asset(id: $assetId) {
-    id
-    tokenId
-    owner
-    metadata {
-      name
-      description
-      image
-    }
-    transferHistory {
-      from
-      to
-      timestamp
-      transactionHash
-    }
-  }
+// Request tokens (requires valid signature)
+POST /api/faucet/claim
+{
+  "address": "0x...",
+  "signature": "0x..."
 }
+
+// Get claim history
+GET /api/faucet/history/:address
+```
+
+### Web3 Integration
+
+```javascript
+// Connect to MetaMask
+const provider = window.ethereum;
+await provider.request({ method: 'eth_requestAccounts' });
+
+// Switch to Sepolia
+await provider.request({
+  method: 'wallet_switchEthereumChain',
+  params: [{ chainId: '0xaa36a7' }], // Sepolia chain ID
+});
 ```
 
 ## Security Considerations
 
 ### Smart Contract Security
-- **Audited Contracts**: All smart contracts undergo thorough security audits
-- **Multi-Signature Requirements**: Critical operations require multiple signatures
-- **Pausable Functionality**: Emergency pause mechanism for security incidents
-- **Access Control**: Role-based access control for administrative functions
+- **Verified Contracts**: All contracts are verified on Etherscan
+- **Rate Limiting**: Built-in protection against spam and abuse
+- **Address Validation**: Comprehensive address verification
+- **Transaction Monitoring**: Real-time transaction monitoring
 
 ### Frontend Security
-- **Input Validation**: Comprehensive validation of all user inputs
-- **XSS Protection**: Protection against cross-site scripting attacks
-- **CSRF Protection**: Cross-site request forgery prevention
-- **Secure Communication**: All API communications use HTTPS
+- **Input Validation**: All user inputs are validated
+- **XSS Protection**: Protection against cross-site scripting
+- **Secure Communication**: HTTPS for all API communications
+- **Private Key Safety**: No private keys are ever stored or transmitted
 
 ### Best Practices
-- **Private Key Management**: Never share or expose private keys
-- **Transaction Verification**: Always verify transaction details before signing
+- **Testnet Only**: Platform is for testnet development only
+- **No Real Value**: Testnet tokens have no monetary value
 - **Regular Updates**: Keep MetaMask and browser updated
-- **Phishing Awareness**: Be cautious of phishing attempts
+- **Verify URLs**: Always verify you're on the correct domain
 
 ## Contributing
 
@@ -236,128 +229,89 @@ We welcome contributions from the community! Please follow these guidelines:
 
 ### Development Workflow
 
-1. **Fork the Repository**: Create a fork of the main repository
-2. **Create Feature Branch**: Create a new branch for your feature
+1. **Fork the Repository**
+2. **Create Feature Branch**
    ```bash
    git checkout -b feature/your-feature-name
    ```
-3. **Make Changes**: Implement your changes with proper testing
-4. **Run Tests**: Ensure all tests pass
-   ```bash
-   npm run test
-   ```
-5. **Submit Pull Request**: Create a pull request with detailed description
+3. **Make Changes** with proper testing
+4. **Submit Pull Request** with detailed description
 
 ### Code Standards
 - **TypeScript**: Use TypeScript for all new code
-- **ESLint**: Follow ESLint configuration for code style
-- **Testing**: Include unit tests for new functionality
-- **Documentation**: Update documentation for new features
-
-### Issue Reporting
-- **Bug Reports**: Use the bug report template
-- **Feature Requests**: Use the feature request template
-- **Security Issues**: Report security issues privately
+- **ESLint**: Follow ESLint configuration
+- **Testing**: Include tests for new functionality
+- **Documentation**: Update docs for new features
 
 ## Deployment
 
-### Production Deployment
-
-1. **Build the Application**
-   ```bash
-   npm run build
-   ```
-
-2. **Deploy Smart Contracts**
-   ```bash
-   npm run deploy:mainnet
-   ```
-
-3. **Configure Production Environment**
-   ```bash
-   # Set production environment variables
-   export VITE_ENVIRONMENT=production
-   export VITE_CONTRACT_ADDRESS=your_mainnet_contract
-   ```
-
-4. **Deploy Frontend**
-   ```bash
-   # Deploy to your preferred hosting service
-   npm run deploy
-   ```
-
-### Testing Deployment
-
-For testing on Sepolia testnet:
+### Production Build
 
 ```bash
-npm run deploy:sepolia
+# Build the application
+npm run build
+
+# Preview the build
+npm run preview
+```
+
+### Environment Variables
+
+```env
+VITE_INFURA_KEY=your_infura_project_id
+VITE_SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/your_key
+VITE_TOKEN_CONTRACT_ADDRESS=0x77307DFbc436224d5e6f2048d2b6bDfA66998a15
 ```
 
 ## Roadmap
 
-### Phase 1 (Current)
-- ✅ Basic vehicle tokenization
-- ✅ MetaMask integration
-- ✅ Ethereum mainnet deployment
-- ✅ Transfer functionality
+### Current Features ✅
+- Sepolia testnet faucet
+- MetaMask integration
+- Mining platform integration
+- Responsive design
 
-### Phase 2 (Q2 2025)
-- 🔄 Multi-chain support (Polygon, BSC)
-- 🔄 Mobile application
-- 🔄 Advanced analytics dashboard
-- 🔄 Batch processing capabilities
+### Upcoming Features 🔄
+- Multi-token support
+- Enhanced mining analytics
+- Mobile app version
+- Advanced rate limiting
 
-### Phase 3 (Q3 2025)
-- 📋 Enterprise API expansion
-- 📋 Compliance automation
-- 📋 Insurance integration
-- 📋 Marketplace functionality
+### Future Plans 📋
+- Mainnet integration
+- Additional mining pools
+- API expansion
+- Community features
 
-### Phase 4 (Q4 2025)
-- 📋 Cross-chain bridges
-- 📋 DeFi integration
-- 📋 Governance token
-- 📋 DAO implementation
-
-## Support and Community
+## Support
 
 ### Getting Help
-- **Documentation**: Comprehensive guides and API documentation
-- **Community Forum**: Join our Discord community
-- **Email Support**: support@xmrtrust.com
 - **GitHub Issues**: Report bugs and request features
+- **Documentation**: Comprehensive guides available
+- **Community**: Join our developer community
 
-### Community Links
-- **Website**: [https://xmrtrust.com](https://xmrtrust.com)
-- **Discord**: [Join our community](https://discord.gg/xmrtrust)
-- **Twitter**: [@XMRTrust](https://twitter.com/xmrtrust)
-- **Telegram**: [XMR Trust Channel](https://t.me/xmrtrust)
+### Links
+- **Faucet**: Access the testnet faucet
+- **Mining**: xmrtstart.vercel.app
+- **Sepolia Explorer**: https://sepolia.etherscan.io/
+- **MetaMask**: https://metamask.io/
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Copyright
-
-Copyright © 2024 Joseph Andrew Lee (DevGruGold). All rights reserved.
-
-The XMRT Asset Tokenizer platform is developed and maintained by Joseph Andrew Lee, also known as DevGruGold. This project represents innovative work in the blockchain and asset tokenization space, combining cutting-edge technology with practical real-world applications.
-
 ## Acknowledgments
 
-- **Ethereum Foundation** for providing the blockchain infrastructure
-- **OpenZeppelin** for secure smart contract libraries
-- **MetaMask** for wallet integration capabilities
-- **React Team** for the excellent frontend framework
-- **Vite Team** for the fast build tooling
-- **Tailwind CSS** for the utility-first CSS framework
+- **Ethereum Foundation** for Sepolia testnet infrastructure
+- **MetaMask** for wallet integration
+- **React Team** for the excellent framework
+- **Vite Team** for fast build tooling
+- **Tailwind CSS** for utility-first styling
 
 ## Disclaimer
 
-This software is provided "as is" without warranty of any kind. Users are responsible for their own security and should conduct their own research before using this platform for asset tokenization. Always verify smart contract addresses and transaction details before proceeding with any blockchain operations.
+This platform is for development and testing purposes only. Testnet tokens have no monetary value. Users are responsible for their own security and should never share private keys or seed phrases.
 
 ---
 
-**Built with ❤️ by DevGruGold | Powered by Ethereum | Secured by XMR Trust**
-
+**Built for the Monero Community | Powered by Ethereum Sepolia | Secured by Web3**
