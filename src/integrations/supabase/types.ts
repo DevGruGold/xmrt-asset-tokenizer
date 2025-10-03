@@ -287,6 +287,69 @@ export type Database = {
           },
         ]
       }
+      faucet_claims: {
+        Row: {
+          amount: number
+          claimed_at: string
+          created_at: string
+          error_message: string | null
+          id: string
+          ip_address: unknown | null
+          status: string
+          transaction_hash: string | null
+          updated_at: string
+          wallet_address: string
+        }
+        Insert: {
+          amount: number
+          claimed_at?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          status?: string
+          transaction_hash?: string | null
+          updated_at?: string
+          wallet_address: string
+        }
+        Update: {
+          amount?: number
+          claimed_at?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          status?: string
+          transaction_hash?: string | null
+          updated_at?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
+      faucet_config: {
+        Row: {
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       interaction_patterns: {
         Row: {
           confidence_score: number | null

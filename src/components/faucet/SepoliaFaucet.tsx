@@ -1,16 +1,59 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useWeb3 } from '@/contexts/Web3Context';
 import { useToast } from '@/hooks/use-toast';
-import { Wallet, Coins, AlertCircle, CheckCircle, ExternalLink } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Wallet, Coins, AlertCircle, CheckCircle, ExternalLink, Clock } from 'lucide-react';
 
 const SepoliaFaucet = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingEligibility, setIsCheckingEligibility] = useState(false);
   const [lastClaim, setLastClaim] = useState<string | null>(null);
+  const [eligibility, setEligibility] = useState<any>(null);
+  const [stats, setStats] = useState<any>(null);
   const { account, connect, isActive } = useWeb3();
   const { toast } = useToast();
+
+  // Check eligibility when wallet connects
+  useEffect(() => {
+    if (account && isActive) {
+      checkEligibility();
+      loadStats();
+    }
+  }, [account, isActive]);
+
+  const checkEligibility = async () => {
+    if (!account) return;
+    
+    setIsCheckingEligibility(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('check-faucet-eligibility', {
+        body: { walletAddress: account }
+      });
+
+      if (error) throw error;
+      setEligibility(data);
+    } catch (error) {
+      console.error('Error checking eligibility:', error);
+    } finally {
+      setIsCheckingEligibility(false);
+    }
+  };
+
+  const loadStats = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('get-faucet-stats', {
+        body: { walletAddress: account }
+      });
+
+      if (error) throw error;
+      setStats(data);
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    }
+  };
 
   const handleConnect = async () => {
     try {
@@ -39,23 +82,52 @@ const SepoliaFaucet = () => {
       return;
     }
 
+    if (!eligibility?.eligible) {
+      toast({
+        title: "Not Eligible",
+        description: eligibility?.reason || "You cannot claim tokens at this time",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // This is a mock implementation - in a real faucet, you would call your backend
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const txHash = `0x${Math.random().toString(16).substr(2, 64)}`;
-      setLastClaim(txHash);
-      
-      toast({
-        title: "Tokens Claimed!",
-        description: "MobileMonero test tokens have been sent to your wallet",
+      const { data, error } = await supabase.functions.invoke('claim-faucet-tokens', {
+        body: { walletAddress: account }
       });
-    } catch (error) {
+
+      if (error) throw error;
+
+      if (data.success) {
+        setLastClaim(data.transactionHash);
+        
+        toast({
+          title: "Tokens Claimed!",
+          description: (
+            <div className="space-y-1">
+              <p>{data.amount} ETH sent to your wallet</p>
+              <a 
+                href={data.explorerUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-xs underline flex items-center gap-1"
+              >
+                View on Explorer <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          ),
+        });
+
+        // Refresh eligibility and stats
+        await checkEligibility();
+        await loadStats();
+      }
+    } catch (error: any) {
       console.error('Claim error:', error);
       toast({
         title: "Claim Failed",
-        description: "Unable to claim tokens. Please try again later.",
+        description: error.message || "Unable to claim tokens. Please try again later.",
         variant: "destructive",
       });
     } finally {
@@ -108,24 +180,63 @@ const SepoliaFaucet = () => {
               </p>
             </div>
 
-            <Button 
-              onClick={handleClaimTokens} 
-              disabled={isLoading}
-              className="w-full"
-              size="lg"
-            >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                  Claiming Tokens...
-                </>
-              ) : (
-                <>
-                  <Coins className="mr-2 h-4 w-4" />
-                  Claim 100 MXMR
-                </>
-              )}
-            </Button>
+            {isCheckingEligibility ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+                <p className="text-sm text-muted-foreground mt-2">Checking eligibility...</p>
+              </div>
+            ) : eligibility?.eligible ? (
+              <Button 
+                onClick={handleClaimTokens} 
+                disabled={isLoading}
+                className="w-full"
+                size="lg"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    Claiming Tokens...
+                  </>
+                ) : (
+                  <>
+                    <Coins className="mr-2 h-4 w-4" />
+                    Claim {eligibility.claimAmount} ETH
+                  </>
+                )}
+              </Button>
+            ) : (
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                <div className="flex items-start gap-2">
+                  <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                      {eligibility?.reason || "Not eligible to claim"}
+                    </p>
+                    {eligibility?.nextClaimTime && (
+                      <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                        Next claim available: {new Date(eligibility.nextClaimTime).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {stats && (
+              <div className="bg-muted p-3 rounded-lg space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">Faucet Statistics</p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <p className="text-muted-foreground">Total Claims</p>
+                    <p className="font-mono font-medium">{stats.totalClaims}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Total Distributed</p>
+                    <p className="font-mono font-medium">{stats.totalDistributed} ETH</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
