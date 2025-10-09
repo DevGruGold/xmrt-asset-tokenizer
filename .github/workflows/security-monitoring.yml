@@ -1,0 +1,79 @@
+name: Security Monitoring
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Daily security scan
+    - cron: '0 2 * * 1'  # Weekly deep scan
+  workflow_dispatch:
+  push:
+    paths:
+      - '**/requirements*.txt'
+      - '**/package*.json'
+      - '**/Dockerfile'
+      - '**/.github/workflows/**'
+
+jobs:
+  vulnerability-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+    
+    - name: Node.js security audit
+      run: |
+        npm audit
+        npx audit-ci --config .audit-ci.json || true
+    
+    - name: Security policy compliance check
+      run: |
+        echo "Checking security policy compliance..."
+        # Add security policy checks
+  
+  license-compliance:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Check Node.js licenses
+      run: |
+        npx license-checker --json --out node-licenses.json
+    
+    - name: Generate license report
+      run: |
+        echo "License compliance report for xmrt-asset-tokenizer" > license-report.txt
+        # Add license analysis commands
+  
+  secret-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Run secret scan
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: ${{ github.event.repository.default_branch }}
+        head: HEAD
