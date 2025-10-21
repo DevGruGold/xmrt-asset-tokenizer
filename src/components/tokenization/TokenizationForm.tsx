@@ -16,6 +16,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Upload, ExternalLink, Wallet } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useWeb3 } from '@/contexts/Web3Context';
+import { ethers } from 'ethers';
+import { getContractAddress, NFT_TOKENIZER_ABI } from '@/config/contracts';
 import {
   Dialog,
   DialogContent,
@@ -31,7 +33,7 @@ const formSchema = z.object({
 });
 
 export const TokenizationForm = () => {
-  const { connect, disconnect, account, isActive, isLoading: isWalletLoading } = useWeb3();
+  const { connect, disconnect, account, isActive, isLoading: isWalletLoading, getSigner, chainId } = useWeb3();
   const [progress, setProgress] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -50,8 +52,21 @@ export const TokenizationForm = () => {
     },
   });
 
+  const uploadToIPFS = async (file: File): Promise<string> => {
+    // In production, integrate with IPFS/Pinata/NFT.Storage
+    // For now, return a placeholder URI
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // Simulate upload delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Return placeholder IPFS URI
+    return `ipfs://QmPlaceholder${Date.now()}`;
+  };
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!isActive) {
+    if (!isActive || !account) {
       toast({
         title: "Wallet Required",
         description: "Please connect your wallet first",
@@ -60,33 +75,102 @@ export const TokenizationForm = () => {
       return;
     }
 
+    if (!chainId) {
+      toast({
+        title: "Network Error",
+        description: "Unable to detect network",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsProcessing(true);
+    setProgress(10);
     
     try {
-      // Simulate tokenization process
-      for (let i = 0; i <= 100; i += 10) {
-        setProgress(i);
-        await new Promise(resolve => setTimeout(resolve, 500));
+      // Step 1: Upload file to IPFS (20%)
+      toast({
+        title: "Uploading to IPFS",
+        description: "Uploading your asset metadata...",
+      });
+      
+      const file = values.file[0];
+      const metadataURI = await uploadToIPFS(file);
+      setProgress(30);
+
+      // Step 2: Get contract and signer (40%)
+      const signer = getSigner();
+      if (!signer) {
+        throw new Error("Unable to get signer");
       }
 
-      // Simulate blockchain transaction details
-      const mockTransactionDetails = {
-        txHash: '0x' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
-        tokenId: Math.floor(Math.random() * 1000000).toString(),
-        contractAddress: '0x' + Math.random().toString(36).substring(2, 40)
+      const contractAddress = getContractAddress(chainId, 'NFT_TOKENIZER');
+      const contract = new ethers.Contract(contractAddress, NFT_TOKENIZER_ABI, signer);
+      setProgress(50);
+
+      // Step 3: Mint NFT on blockchain (70%)
+      toast({
+        title: "Minting NFT",
+        description: "Please confirm the transaction in your wallet...",
+      });
+
+      const tx = await contract.mintAsset(
+        values.assetName,
+        values.description,
+        metadataURI
+      );
+      
+      setProgress(70);
+      
+      toast({
+        title: "Transaction Submitted",
+        description: "Waiting for blockchain confirmation...",
+      });
+
+      // Step 4: Wait for confirmation (90%)
+      const receipt = await tx.wait();
+      setProgress(90);
+
+      // Step 5: Extract token ID from event logs
+      const mintEvent = receipt.events?.find((e: any) => e.event === 'AssetMinted');
+      const tokenId = mintEvent?.args?.tokenId?.toString() || 'Unknown';
+      
+      setProgress(100);
+
+      // Set transaction details
+      const txDetails = {
+        txHash: receipt.transactionHash,
+        tokenId: tokenId,
+        contractAddress: contractAddress
       };
 
-      setTransactionDetails(mockTransactionDetails);
+      setTransactionDetails(txDetails);
       setShowSuccessDialog(true);
 
       toast({
-        title: "Asset Tokenized Successfully",
-        description: "Your asset has been tokenized and added to the blockchain",
+        title: "Asset Tokenized Successfully!",
+        description: `Token ID: ${tokenId}`,
       });
-    } catch (error) {
+
+      // Reset form
+      form.reset();
+      
+    } catch (error: any) {
+      console.error('Tokenization error:', error);
+      
+      let errorMessage = "There was an error tokenizing your asset";
+      
+      if (error.code === 4001) {
+        errorMessage = "Transaction rejected by user";
+      } else if (error.code === -32603) {
+        errorMessage = "Internal error. Please check your wallet balance.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Error",
-        description: "There was an error tokenizing your asset",
+        title: "Tokenization Failed",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -95,8 +179,11 @@ export const TokenizationForm = () => {
     }
   };
 
-  const getEtherscanUrl = (type: 'tx' | 'token' | 'address') => {
-    const baseUrl = 'https://etherscan.io';
+  const getBlockExplorerUrl = (type: 'tx' | 'token' | 'address') => {
+    const baseUrl = chainId === 11155111 
+      ? 'https://sepolia.etherscan.io' 
+      : 'https://etherscan.io';
+      
     switch (type) {
       case 'tx':
         return `${baseUrl}/tx/${transactionDetails.txHash}`;
@@ -114,7 +201,7 @@ export const TokenizationForm = () => {
       {!isActive ? (
         <div className="text-center space-y-4 py-8">
           <h3 className="text-xl font-semibold">Connect Your Wallet</h3>
-          <p className="text-gray-600">Connect your MetaMask wallet to start tokenizing your assets</p>
+          <p className="text-muted-foreground">Connect your wallet to start tokenizing your assets</p>
           <Button 
             onClick={connect} 
             disabled={isWalletLoading}
@@ -132,7 +219,7 @@ export const TokenizationForm = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="flex justify-between items-center mb-6">
-              <p className="text-sm text-gray-600">Connected: {account?.slice(0, 6)}...{account?.slice(-4)}</p>
+              <p className="text-sm text-muted-foreground">Connected: {account?.slice(0, 6)}...{account?.slice(-4)}</p>
               <Button variant="outline" size="sm" onClick={disconnect}>
                 Disconnect
               </Button>
@@ -174,13 +261,13 @@ export const TokenizationForm = () => {
                   <FormLabel>Asset File</FormLabel>
                   <FormControl>
                     <div className="flex items-center justify-center w-full">
-                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-800">
+                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-accent">
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                           <Upload className="w-8 h-8 mb-2" />
                           <p className="mb-2 text-sm">
                             <span className="font-semibold">Click to upload</span> or drag and drop
                           </p>
-                          <p className="text-xs text-gray-400">
+                          <p className="text-xs text-muted-foreground">
                             Supported files: Images, PDFs, Documents
                           </p>
                         </div>
@@ -201,8 +288,13 @@ export const TokenizationForm = () => {
             {isProcessing && (
               <div className="space-y-2">
                 <Progress value={progress} className="w-full" />
-                <p className="text-sm text-center text-gray-400">
-                  Tokenizing your asset... {progress}%
+                <p className="text-sm text-center text-muted-foreground">
+                  {progress < 30 && "Uploading to IPFS..."}
+                  {progress >= 30 && progress < 50 && "Preparing contract..."}
+                  {progress >= 50 && progress < 70 && "Minting NFT..."}
+                  {progress >= 70 && progress < 100 && "Confirming transaction..."}
+                  {progress === 100 && "Complete!"}
+                  {" "}{progress}%
                 </p>
               </div>
             )}
@@ -230,17 +322,17 @@ export const TokenizationForm = () => {
           <DialogHeader>
             <DialogTitle>Asset Successfully Tokenized!</DialogTitle>
             <DialogDescription>
-              Your asset has been successfully tokenized on the Ethereum blockchain. You can verify the transaction using the links below:
+              Your asset has been successfully tokenized on the blockchain. View transaction details below:
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
               <p className="text-sm font-medium">Transaction Hash:</p>
               <div className="flex items-center gap-2">
-                <code className="bg-gray-800 p-2 rounded text-sm flex-1 overflow-hidden text-ellipsis">
+                <code className="bg-muted p-2 rounded text-sm flex-1 overflow-hidden text-ellipsis">
                   {transactionDetails.txHash}
                 </code>
-                <Button variant="outline" size="sm" onClick={() => window.open(getEtherscanUrl('tx'), '_blank')}>
+                <Button variant="outline" size="sm" onClick={() => window.open(getBlockExplorerUrl('tx'), '_blank')}>
                   <ExternalLink className="h-4 w-4" />
                 </Button>
               </div>
@@ -248,10 +340,10 @@ export const TokenizationForm = () => {
             <div className="space-y-2">
               <p className="text-sm font-medium">Token ID:</p>
               <div className="flex items-center gap-2">
-                <code className="bg-gray-800 p-2 rounded text-sm flex-1">
+                <code className="bg-muted p-2 rounded text-sm flex-1">
                   {transactionDetails.tokenId}
                 </code>
-                <Button variant="outline" size="sm" onClick={() => window.open(getEtherscanUrl('token'), '_blank')}>
+                <Button variant="outline" size="sm" onClick={() => window.open(getBlockExplorerUrl('token'), '_blank')}>
                   <ExternalLink className="h-4 w-4" />
                 </Button>
               </div>
@@ -259,10 +351,10 @@ export const TokenizationForm = () => {
             <div className="space-y-2">
               <p className="text-sm font-medium">Contract Address:</p>
               <div className="flex items-center gap-2">
-                <code className="bg-gray-800 p-2 rounded text-sm flex-1 overflow-hidden text-ellipsis">
+                <code className="bg-muted p-2 rounded text-sm flex-1 overflow-hidden text-ellipsis">
                   {transactionDetails.contractAddress}
                 </code>
-                <Button variant="outline" size="sm" onClick={() => window.open(getEtherscanUrl('address'), '_blank')}>
+                <Button variant="outline" size="sm" onClick={() => window.open(getBlockExplorerUrl('address'), '_blank')}>
                   <ExternalLink className="h-4 w-4" />
                 </Button>
               </div>

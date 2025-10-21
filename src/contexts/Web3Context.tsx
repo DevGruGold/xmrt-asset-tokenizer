@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { ethers } from 'ethers';
 import { useToast } from '@/hooks/use-toast';
 
 export const SUPPORTED_CHAINS = {
@@ -34,9 +35,10 @@ export const SUPPORTED_CHAINS = {
 
 interface Web3ContextType {
   connect: () => Promise<void>;
-  disconnect: () => void;
+  disconnect: () => Promise<void>;
   switchChain: (chainId: number) => Promise<void>;
-  bridgeNFT: (tokenId: string, fromChainId: number, toChainId: number) => Promise<void>;
+  getProvider: () => ethers.providers.Web3Provider | null;
+  getSigner: () => ethers.Signer | null;
   account: string | undefined;
   chainId: number | undefined;
   isActive: boolean;
@@ -45,7 +47,8 @@ interface Web3ContextType {
 
 const Web3Context = createContext<Web3ContextType | null>(null);
 
-export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const Web3Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
   const [account, setAccount] = useState<string | undefined>();
   const [chainId, setChainId] = useState<number | undefined>();
   const [isActive, setIsActive] = useState(false);
@@ -58,10 +61,13 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           const accounts = await window.ethereum.request({ method: 'eth_accounts' });
           if (accounts.length > 0) {
+            const ethersProvider = new ethers.providers.Web3Provider(window.ethereum);
+            const network = await ethersProvider.getNetwork();
+            
+            setProvider(ethersProvider);
             setAccount(accounts[0]);
+            setChainId(network.chainId);
             setIsActive(true);
-            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-            setChainId(parseInt(chainId, 16));
           }
         } catch (error) {
           console.error('Error checking connection:', error);
@@ -76,11 +82,12 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         setAccount(undefined);
         setIsActive(false);
+        setProvider(null);
       }
     };
 
-    const handleChainChanged = (chainId: string) => {
-      setChainId(parseInt(chainId, 16));
+    const handleChainChanged = () => {
+      window.location.reload();
     };
 
     checkConnection();
@@ -101,8 +108,8 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
   const connect = async () => {
     if (!window.ethereum) {
       toast({
-        title: "MetaMask Not Found",
-        description: "Please install MetaMask to connect your wallet",
+        title: "Wallet Not Found",
+        description: "Please install MetaMask or another Web3 wallet",
         variant: "destructive",
       });
       return;
@@ -110,20 +117,20 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setIsLoading(true);
     try {
-      const accounts = await window.ethereum.request({ 
-        method: 'eth_requestAccounts' 
-      });
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       
       if (accounts.length > 0) {
-        setAccount(accounts[0]);
-        setIsActive(true);
+        const ethersProvider = new ethers.providers.Web3Provider(window.ethereum);
+        const network = await ethersProvider.getNetwork();
         
-        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-        setChainId(parseInt(chainId, 16));
+        setProvider(ethersProvider);
+        setAccount(accounts[0]);
+        setChainId(network.chainId);
+        setIsActive(true);
         
         toast({
           title: "Wallet Connected",
-          description: "Successfully connected to MetaMask",
+          description: `Connected to ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`,
         });
       }
     } catch (error: any) {
@@ -132,13 +139,13 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         description: error.message || "Failed to connect wallet",
         variant: "destructive",
       });
-      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
   const disconnect = async () => {
+    setProvider(null);
     setAccount(undefined);
     setIsActive(false);
     setChainId(undefined);
@@ -151,12 +158,8 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const switchChain = async (targetChainId: number) => {
     const chain = Object.values(SUPPORTED_CHAINS).find(c => c.chainId === targetChainId);
-    if (!chain) {
-      throw new Error("Unsupported chain");
-    }
-
-    if (!window.ethereum) {
-      throw new Error("MetaMask not found");
+    if (!chain || !window.ethereum) {
+      throw new Error("Unsupported chain or wallet not found");
     }
 
     try {
@@ -169,11 +172,10 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
       
       toast({
         title: "Network Changed",
-        description: `Successfully switched to ${chain.name}`,
+        description: `Switched to ${chain.name}`,
       });
     } catch (error: any) {
       if (error.code === 4902) {
-        // Chain not added to MetaMask
         try {
           await window.ethereum.request({
             method: 'wallet_addEthereumChain',
@@ -191,11 +193,6 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
           });
           
           setChainId(targetChainId);
-          
-          toast({
-            title: "Network Added & Changed",
-            description: `Successfully added and switched to ${chain.name}`,
-          });
         } catch (addError: any) {
           toast({
             title: "Error",
@@ -215,44 +212,8 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const bridgeNFT = async (tokenId: string, fromChainId: number, toChainId: number) => {
-    if (!isActive || !account) {
-      throw new Error("Wallet not connected");
-    }
-
-    const fromChain = Object.values(SUPPORTED_CHAINS).find(c => c.chainId === fromChainId);
-    const toChain = Object.values(SUPPORTED_CHAINS).find(c => c.chainId === toChainId);
-
-    if (!fromChain || !toChain) {
-      throw new Error("Invalid chain selection");
-    }
-
-    try {
-      // First switch to the source chain
-      await switchChain(fromChainId);
-
-      toast({
-        title: "Bridging NFT",
-        description: `Starting transfer from ${fromChain.name} to ${toChain.name}`,
-      });
-
-      // Simulate bridge transaction (replace with actual bridge contract interaction)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      toast({
-        title: "Bridge Initiated",
-        description: "Your vehicle NFT transfer has been initiated. Please wait for confirmation.",
-      });
-
-    } catch (error: any) {
-      toast({
-        title: "Bridge Failed",
-        description: error.message || "Failed to transfer NFT between chains",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
+  const getProvider = () => provider;
+  const getSigner = () => provider?.getSigner() || null;
 
   return (
     <Web3Context.Provider
@@ -260,7 +221,8 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         connect,
         disconnect,
         switchChain,
-        bridgeNFT,
+        getProvider,
+        getSigner,
         account,
         chainId,
         isActive,
