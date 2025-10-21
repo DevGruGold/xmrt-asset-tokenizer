@@ -29,7 +29,7 @@ const CTASection = () => {
   };
 
   const handleStartMining = () => {
-    window.open('https://xmrtstart.vercel.app', '_blank');
+    window.open('https://mobilemonero.com', '_blank');
   };
 
   const handleLearnMore = () => {

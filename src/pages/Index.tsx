@@ -7,7 +7,7 @@ import { Pickaxe } from 'lucide-react';
 
 const Index = () => {
   const handleStartMining = () => {
-    window.open('https://xmrtstart.vercel.app', '_blank');
+    window.open('https://mobilemonero.com', '_blank');
   };
 
   return (
